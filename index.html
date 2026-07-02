@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>唐诗宋词知识图谱学习网络</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f7f2e7;
+        --paper-2: #f1e7d4;
+        --ink: #1f1b16;
+        --ink-2: #3b342d;
+        --seal: #b23a2f;
+        --indigo: #243447;
+        --jade: #1f6f5b;
+        --edge-dynasty: rgba(36, 52, 71, 0.38);
+        --edge-author: rgba(178, 58, 47, 0.46);
+        --edge-theme: rgba(31, 111, 91, 0.42);
+        --shadow: 0 18px 55px rgba(20, 14, 10, 0.18);
+        --ring: 0 0 0 2px rgba(178, 58, 47, 0.22);
+        --radius-lg: 22px;
+        --radius-md: 14px;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        color: var(--ink);
+        background:
+          radial-gradient(1200px 600px at 20% 10%, rgba(178, 58, 47, 0.06), transparent 60%),
+          radial-gradient(900px 520px at 78% 30%, rgba(31, 111, 91, 0.06), transparent 62%),
+          linear-gradient(180deg, var(--paper), var(--paper-2));
+        font-family: "Noto Serif SC", ui-serif, "Songti SC", SimSun, serif;
+        letter-spacing: 0.2px;
+        overflow: hidden;
+      }
+
+      .grain {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.16;
+        mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      }
+
+      .app {
+        height: 100%;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 16px;
+        padding: 22px 24px 16px;
+        position: relative;
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 240px;
+      }
+
+      .title {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+      }
+
+      .title h1 {
+        margin: 0;
+        font-family: "Ma Shan Zheng", cursive;
+        font-weight: 400;
+        font-size: 34px;
+        letter-spacing: 1.2px;
+        color: var(--ink);
+        line-height: 1.1;
+      }
+
+      .seal {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 10px;
+        border-radius: 10px;
+        background: linear-gradient(180deg, rgba(178, 58, 47, 0.96), rgba(131, 24, 20, 0.96));
+        color: #fff5e9;
+        font-size: 12px;
+        letter-spacing: 2px;
+        box-shadow: 0 10px 22px rgba(131, 24, 20, 0.22);
+        transform: translateY(-2px) rotate(-1deg);
+        user-select: none;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: rgba(31, 27, 22, 0.72);
+        font-size: 13px;
+        line-height: 1.6;
+        max-width: 66ch;
+      }
+
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .control {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.52);
+        border: 1px solid rgba(31, 27, 22, 0.14);
+        box-shadow: 0 12px 26px rgba(20, 14, 10, 0.06);
+        backdrop-filter: blur(8px);
+      }
+
+      .control label {
+        font-size: 12px;
+        color: rgba(31, 27, 22, 0.7);
+        letter-spacing: 1px;
+      }
+
+      .control select {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        font-family: inherit;
+        font-size: 13px;
+        color: var(--ink);
+        padding-right: 16px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      .control select:focus {
+        box-shadow: var(--ring);
+        border-radius: 8px;
+      }
+
+      .btn {
+        border: 0;
+        padding: 10px 14px;
+        border-radius: 999px;
+        font-family: inherit;
+        font-size: 13px;
+        letter-spacing: 1px;
+        cursor: pointer;
+        background: rgba(178, 58, 47, 0.12);
+        color: rgba(131, 24, 20, 0.92);
+        border: 1px solid rgba(178, 58, 47, 0.24);
+        transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 30px rgba(131, 24, 20, 0.12);
+        background: rgba(178, 58, 47, 0.16);
+      }
+
+      .stage {
+        position: relative;
+        padding: 0 24px 22px;
+      }
+
+      .frame {
+        position: relative;
+        height: 100%;
+        min-height: 520px;
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 18px;
+      }
+
+      .graph-wrap {
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(31, 27, 22, 0.14);
+        background: rgba(255, 255, 255, 0.36);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .graph-wrap::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(135deg, rgba(178, 58, 47, 0.08), transparent 40%),
+          linear-gradient(315deg, rgba(31, 111, 91, 0.08), transparent 48%);
+        opacity: 0.8;
+      }
+
+      #graph {
+        position: absolute;
+        inset: 0;
+      }
+
+      .legend {
+        position: absolute;
+        left: 18px;
+        bottom: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(31, 27, 22, 0.14);
+        backdrop-filter: blur(8px);
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        color: rgba(31, 27, 22, 0.78);
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+      }
+
+      .dot.dynasty {
+        background: var(--indigo);
+        opacity: 0.66;
+      }
+
+      .dot.author {
+        background: var(--seal);
+        opacity: 0.72;
+      }
+
+      .dot.theme {
+        background: var(--jade);
+        opacity: 0.7;
+      }
+
+      .panel {
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(31, 27, 22, 0.16);
+        background: rgba(255, 255, 255, 0.58);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .panel-header {
+        padding: 18px 18px 14px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid rgba(31, 27, 22, 0.1);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.35));
+      }
+
+      .panel-header h2 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.25;
+        letter-spacing: 0.6px;
+        color: var(--ink);
+      }
+
+      .meta {
+        margin-top: 6px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        color: rgba(31, 27, 22, 0.74);
+        font-size: 12px;
+      }
+
+      .tag {
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(31, 27, 22, 0.14);
+        background: rgba(255, 255, 255, 0.65);
+        letter-spacing: 1px;
+      }
+
+      .panel-close {
+        border: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        cursor: pointer;
+        background: rgba(31, 27, 22, 0.06);
+        color: rgba(31, 27, 22, 0.78);
+        transition: background 160ms ease, transform 160ms ease;
+      }
+
+      .panel-close:hover {
+        background: rgba(31, 27, 22, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .panel-body {
+        padding: 16px 18px 18px;
+        overflow: auto;
+      }
+
+      .section {
+        margin: 0 0 16px;
+      }
+
+      .section-title {
+        margin: 0 0 10px;
+        font-size: 12px;
+        letter-spacing: 2px;
+        color: rgba(31, 27, 22, 0.72);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-title::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+        background: linear-gradient(90deg, rgba(31, 27, 22, 0.18), transparent);
+      }
+
+      .poem {
+        margin: 0;
+        white-space: pre-wrap;
+        font-size: 15px;
+        line-height: 1.9;
+        color: rgba(31, 27, 22, 0.92);
+      }
+
+      .analysis {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.85;
+        color: rgba(31, 27, 22, 0.82);
+      }
+
+      .empty {
+        height: 100%;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 26px 22px;
+        color: rgba(31, 27, 22, 0.7);
+      }
+
+      .empty .hint {
+        max-width: 28ch;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      .panel[data-open="false"] .panel-header,
+      .panel[data-open="false"] .panel-body {
+        opacity: 0;
+        transform: translateX(12px);
+        transition: opacity 220ms ease, transform 220ms ease;
+      }
+
+      .panel[data-open="true"] .panel-header,
+      .panel[data-open="true"] .panel-body {
+        opacity: 1;
+        transform: translateX(0);
+        transition: opacity 220ms ease, transform 220ms ease;
+      }
+
+      @media (max-width: 980px) {
+        body {
+          overflow: auto;
+        }
+
+        .frame {
+          grid-template-columns: 1fr;
+          grid-template-rows: 560px auto;
+        }
+
+        .panel {
+          min-height: 420px;
+        }
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  </head>
+  <body>
+    <div class="grain"></div>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="title">
+            <h1>唐诗宋词知识图谱</h1>
+            <div class="seal">研</div>
+          </div>
+          <p class="subtitle">
+            以力导向图串联朝代、作者与主题。悬浮高亮关系，点击节点展开原文与赏析；用“关系式阅读”重建诗词记忆。
+          </p>
+        </div>
+        <div class="controls" aria-label="过滤器">
+          <div class="control">
+            <label for="dynastySelect">朝代</label>
+            <select id="dynastySelect">
+              <option value="">全部</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="authorSelect">作者</label>
+            <select id="authorSelect">
+              <option value="">全部</option>
+            </select>
+          </div>
+          <button class="btn" id="resetBtn" type="button">重置</button>
+        </div>
+      </header>
+
+      <main class="stage">
+        <div class="frame">
+          <section class="graph-wrap" aria-label="知识图谱画布">
+            <div id="graph"></div>
+            <div class="legend" aria-label="关系类型图例">
+              <div class="legend-item"><span class="dot dynasty"></span>同朝代</div>
+              <div class="legend-item"><span class="dot author"></span>同作者</div>
+              <div class="legend-item"><span class="dot theme"></span>同主题</div>
+            </div>
+          </section>
+
+          <aside class="panel" id="detailPanel" data-open="false" aria-label="诗词详情">
+            <div class="panel-header">
+              <div>
+                <h2 id="detailTitle">详情</h2>
+                <div class="meta" id="detailMeta"></div>
+              </div>
+              <button class="panel-close" id="closePanelBtn" type="button" aria-label="关闭">
+                ✕
+              </button>
+            </div>
+            <div class="panel-body" id="detailBody">
+              <div class="empty">
+                <div class="hint">
+                  点击任意节点，即可在此处展开该诗词的原文与赏析讲解。
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+
+    <script type="module">
+      const GRAPH_SEED = {
+        nodes: [
+          {
+            id: "tang-libai-jingyesi",
+            name: "静夜思",
+            dynasty: "唐",
+            author: "李白",
+            theme: "思乡",
+            content: "床前明月光，\n疑是地上霜。\n举头望明月，\n低头思故乡。",
+            analysis:
+              "短短二十字，以“明月”起兴，写出旅人夜半的清寂与乡愁。全诗不事雕琢，靠视觉错觉（霜/月光）与动作转换（举头/低头）完成情感落点。",
+            symbolSize: 14,
+          },
+          {
+            id: "tang-libai-songmeng",
+            name: "送孟浩然之广陵",
+            dynasty: "唐",
+            author: "李白",
+            theme: "送别",
+            content:
+              "故人西辞黄鹤楼，\n烟花三月下扬州。\n孤帆远影碧空尽，\n唯见长江天际流。",
+            analysis:
+              "送别不写泪，而写景：黄鹤楼、三月烟花、孤帆远影与长江天际。空间不断拉远，离情却在“唯见”处忽然沉落，形成含蓄而辽阔的余韵。",
+            symbolSize: 16,
+          },
+          {
+            id: "tang-wangwei-songyuan",
+            name: "送元二使安西",
+            dynasty: "唐",
+            author: "王维",
+            theme: "送别",
+            content: "渭城朝雨浥轻尘，\n客舍青青柳色新。\n劝君更尽一杯酒，\n西出阳关无故人。",
+            analysis:
+              "王维以“朝雨”“柳色”铺陈清润氛围，情绪却在“更尽一杯酒”陡然转深。阳关之外无故人，送别的空落与关塞的辽远被一句口语化劝酒凝结。",
+            symbolSize: 15,
+          },
+          {
+            id: "tang-wangchangling-chusai",
+            name: "出塞",
+            dynasty: "唐",
+            author: "王昌龄",
+            theme: "边塞",
+            content: "秦时明月汉时关，\n万里长征人未还。\n但使龙城飞将在，\n不教胡马度阴山。",
+            analysis:
+              "首联以历史纵深推进边塞苍凉，“明月”“关山”与“人未还”形成永恒感。后两句借古名将寄托现实愿望，豪迈中含忧思。",
+            symbolSize: 15,
+          },
+          {
+            id: "song-liqingzhao-rumengling",
+            name: "如梦令·常记溪亭日暮",
+            dynasty: "宋",
+            author: "李清照",
+            theme: "婉约",
+            content:
+              "常记溪亭日暮，\n沉醉不知归路。\n兴尽晚回舟，\n误入藕花深处。\n争渡，争渡，\n惊起一滩鸥鹭。",
+            analysis:
+              "以追忆口吻写一段轻灵的水上迷航，节奏明快，画面鲜活。叠词“争渡”使情绪骤起，最终以“惊起鸥鹭”收束，动静相生。",
+            symbolSize: 15,
+          },
+        ],
+      };
+
+      const RELATION_STYLE = {
+        same_dynasty: { color: getComputedStyle(document.documentElement).getPropertyValue("--edge-dynasty").trim() },
+        same_author: { color: getComputedStyle(document.documentElement).getPropertyValue("--edge-author").trim() },
+        same_theme: { color: getComputedStyle(document.documentElement).getPropertyValue("--edge-theme").trim() },
+      };
+
+      const isSame = (a, b) => (a ?? "") === (b ?? "");
+
+      const buildEdges = (nodes) => {
+        const edges = [];
+        const seen = new Set();
+
+        const linkStar = (key, relation) => {
+          const groups = new Map();
+          for (const n of nodes) {
+            const v = n[key];
+            if (!v) continue;
+            if (!groups.has(v)) groups.set(v, []);
+            groups.get(v).push(n);
+          }
+
+          for (const [, group] of groups) {
+            if (group.length < 2) continue;
+            const hub = group[0];
+            for (let i = 1; i < group.length; i += 1) {
+              const a = hub.id;
+              const b = group[i].id;
+              const k = a < b ? `${a}__${b}__${relation}` : `${b}__${a}__${relation}`;
+              if (seen.has(k)) continue;
+              seen.add(k);
+              edges.push({
+                source: a,
+                target: b,
+                relation,
+                lineStyle: {
+                  color: RELATION_STYLE[relation].color,
+                  width: relation === "same_author" ? 2 : 1,
+                  opacity: relation === "same_dynasty" ? 0.45 : 0.58,
+                  curveness: 0.12,
+                },
+              });
+            }
+          }
+        };
+
+        linkStar("dynasty", "same_dynasty");
+        linkStar("author", "same_author");
+        linkStar("theme", "same_theme");
+
+        return edges;
+      };
+
+      const normalizeGraph = (nodes) => {
+        const edges = buildEdges(nodes);
+        return { nodes, edges };
+      };
+
+      const uniqueSorted = (arr) =>
+        Array.from(new Set(arr.filter(Boolean))).sort((a, b) => a.localeCompare(b, "zh-Hans-CN"));
+
+      const createOption = (graph) => ({
+        backgroundColor: "transparent",
+        tooltip: {
+          trigger: "item",
+          confine: true,
+          backgroundColor: "rgba(31, 27, 22, 0.92)",
+          borderWidth: 0,
+          textStyle: { color: "#fff5e9", fontFamily: '"Noto Serif SC", serif', fontSize: 12 },
+          formatter: (p) => {
+            if (p.dataType !== "node") return "";
+            const d = p.data;
+            return [
+              `<div style="font-size:13px;font-weight:700;letter-spacing:.5px;margin-bottom:6px;">${d.name}</div>`,
+              `<div style="opacity:.92;">${d.dynasty} · ${d.author}</div>`,
+              `<div style="opacity:.88;margin-top:4px;">主题：${d.theme}</div>`,
+            ].join("");
+          },
+        },
+        series: [
+          {
+            type: "graph",
+            layout: "force",
+            roam: true,
+            draggable: true,
+            data: graph.nodes.map((n) => ({
+              ...n,
+              value: n.name,
+              itemStyle: {
+                color: "rgba(31, 27, 22, 0.78)",
+                borderColor: "rgba(255, 245, 233, 0.65)",
+                borderWidth: 1,
+                shadowColor: "rgba(31, 27, 22, 0.25)",
+                shadowBlur: 12,
+              },
+              label: {
+                show: false,
+                formatter: "{b}",
+                color: "rgba(31, 27, 22, 0.9)",
+                fontFamily: '"Noto Serif SC", serif',
+                fontWeight: 700,
+                backgroundColor: "rgba(255, 255, 255, 0.72)",
+                padding: [6, 8],
+                borderRadius: 10,
+              },
+            })),
+            links: graph.edges.map((e) => ({
+              ...e,
+              tooltip: { show: false },
+            })),
+            lineStyle: {
+              width: 1,
+              opacity: 0.4,
+            },
+            emphasis: {
+              focus: "adjacency",
+              label: { show: true },
+              lineStyle: { width: 2, opacity: 0.9 },
+              itemStyle: { opacity: 1 },
+            },
+            blur: {
+              itemStyle: { opacity: 0.08 },
+              lineStyle: { opacity: 0.05 },
+              label: { show: false },
+            },
+            force: {
+              repulsion: 210,
+              edgeLength: [36, 150],
+              gravity: 0.08,
+              friction: 0.22,
+            },
+            animationDurationUpdate: 320,
+            progressive: 2500,
+            progressiveThreshold: 3000,
+          },
+        ],
+      });
+
+      const state = {
+        rawNodes: GRAPH_SEED.nodes,
+        current: normalizeGraph(GRAPH_SEED.nodes),
+        selectedId: null,
+      };
+
+      const el = {
+        graph: document.getElementById("graph"),
+        dynastySelect: document.getElementById("dynastySelect"),
+        authorSelect: document.getElementById("authorSelect"),
+        resetBtn: document.getElementById("resetBtn"),
+        panel: document.getElementById("detailPanel"),
+        closePanelBtn: document.getElementById("closePanelBtn"),
+        detailTitle: document.getElementById("detailTitle"),
+        detailMeta: document.getElementById("detailMeta"),
+        detailBody: document.getElementById("detailBody"),
+      };
+
+      const chart = echarts.init(el.graph, null, { renderer: "canvas", useDirtyRect: true });
+
+      const renderGraph = () => {
+        chart.setOption(createOption(state.current), true);
+      };
+
+      const closePanel = () => {
+        state.selectedId = null;
+        el.panel.dataset.open = "false";
+        el.detailTitle.textContent = "详情";
+        el.detailMeta.innerHTML = "";
+        el.detailBody.innerHTML = `
+          <div class="empty">
+            <div class="hint">点击任意节点，即可在此处展开该诗词的原文与赏析讲解。</div>
+          </div>
+        `;
+      };
+
+      const openPanel = (node) => {
+        state.selectedId = node.id;
+        el.panel.dataset.open = "true";
+        el.detailTitle.textContent = node.name;
+        el.detailMeta.innerHTML = `
+          <span class="tag">${node.dynasty}</span>
+          <span class="tag">${node.author}</span>
+          <span class="tag">${node.theme}</span>
+        `;
+        el.detailBody.innerHTML = `
+          <section class="section">
+            <h3 class="section-title">原文</h3>
+            <pre class="poem">${escapeHtml(node.content)}</pre>
+          </section>
+          <section class="section">
+            <h3 class="section-title">赏析</h3>
+            <p class="analysis">${escapeHtml(node.analysis)}</p>
+          </section>
+        `;
+      };
+
+      const escapeHtml = (str) =>
+        String(str ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+
+      const populateFilters = () => {
+        const dynasties = uniqueSorted(state.rawNodes.map((n) => n.dynasty));
+        el.dynastySelect.innerHTML = ['<option value="">全部</option>', ...dynasties.map((d) => `<option value="${d}">${d}</option>`)].join(
+          ""
+        );
+        populateAuthors();
+      };
+
+      const populateAuthors = () => {
+        const d = el.dynastySelect.value;
+        const list = state.rawNodes.filter((n) => (d ? isSame(n.dynasty, d) : true)).map((n) => n.author);
+        const authors = uniqueSorted(list);
+        const current = el.authorSelect.value;
+        el.authorSelect.innerHTML = ['<option value="">全部</option>', ...authors.map((a) => `<option value="${a}">${a}</option>`)].join(
+          ""
+        );
+        if (current && authors.includes(current)) el.authorSelect.value = current;
+        else el.authorSelect.value = "";
+      };
+
+      const applyFilters = () => {
+        const dynasty = el.dynastySelect.value;
+        const author = el.authorSelect.value;
+
+        const nodes = state.rawNodes.filter((n) => {
+          if (dynasty && !isSame(n.dynasty, dynasty)) return false;
+          if (author && !isSame(n.author, author)) return false;
+          return true;
+        });
+
+        state.current = normalizeGraph(nodes);
+        closePanel();
+        renderGraph();
+      };
+
+      el.dynastySelect.addEventListener("change", () => {
+        populateAuthors();
+        applyFilters();
+      });
+      el.authorSelect.addEventListener("change", applyFilters);
+      el.resetBtn.addEventListener("click", () => {
+        el.dynastySelect.value = "";
+        populateAuthors();
+        el.authorSelect.value = "";
+        applyFilters();
+      });
+      el.closePanelBtn.addEventListener("click", closePanel);
+
+      chart.on("click", (params) => {
+        if (params?.dataType !== "node") return;
+        openPanel(params.data);
+      });
+
+      window.addEventListener("resize", () => chart.resize());
+
+      populateFilters();
+      applyFilters();
+    </script>
+  </body>
+  </html>
+
